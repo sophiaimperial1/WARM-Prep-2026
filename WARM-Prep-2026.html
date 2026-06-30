@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Console Tracker - WARM Prep 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f5f5f4; color: #1a1a18; padding: 24px; }
+.tracker { max-width: 1400px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
+.top-bar h2 { font-size: 20px; font-weight: 600; color: #1a1a18; }
+.top-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.site-btn { padding: 6px 14px; font-size: 13px; border: 1px solid #d6d4cb; border-radius: 6px; background: #f1efe8; color: #5f5e5a; cursor: pointer; }
+.site-btn:hover { background: #e8e6dd; }
+.site-btn.active { background: #e6f1fb; color: #0c447c; border-color: #85b7eb; font-weight: 500; }
+.icon-btn { padding: 6px 14px; font-size: 13px; border: 1px solid #d6d4cb; border-radius: 6px; background: #f1efe8; color: #5f5e5a; cursor: pointer; }
+.icon-btn:hover { background: #e8e6dd; color: #1a1a18; }
+.icon-btn.active { background: #eeedfe; color: #3c3489; border-color: #afa9ec; }
+.charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+.metric-card { background: #f1efe8; border-radius: 8px; padding: 14px 16px; }
+.metric-label { font-size: 12px; color: #888780; margin-bottom: 4px; }
+.metric-value { font-size: 26px; font-weight: 600; color: #1a1a18; line-height: 1; }
+.metric-sub { font-size: 12px; color: #5f5e5a; margin-top: 3px; }
+.chart-card { background: #fff; border: 1px solid #e5e3da; border-radius: 12px; padding: 14px 16px; }
+.chart-title { font-size: 11px; font-weight: 600; color: #888780; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+.donut-wrap { display: flex; align-items: center; gap: 16px; }
+.donut-legend { display: flex; flex-direction: column; gap: 6px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5f5e5a; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.bar-chart-area { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-label { font-size: 12px; color: #5f5e5a; width: 70px; text-align: right; }
+.bar-track { flex: 1; height: 20px; background: #f1efe8; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.bar-pct { font-size: 11px; color: #888780; min-width: 30px; text-align: right; }
+.progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem; background: #f1efe8; border-radius: 8px; padding: 10px 14px; }
+.prog-label { font-size: 13px; color: #5f5e5a; }
+.prog-track { flex: 1; height: 6px; background: #d6d4cb; border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: #378add; border-radius: 3px; transition: width 0.4s ease; }
+.prog-count { font-size: 13px; font-weight: 600; color: #185fa5; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600; color: #888780; border-bottom: 1px solid #d6d4cb; text-transform: uppercase; letter-spacing: 0.04em; }
+td { padding: 10px; border-bottom: 1px solid #e5e3da; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #faf9f6; }
+.site-tag { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.site-mckinley { background: #eeedfe; color: #3c3489; }
+.site-pasay { background: #e6f1fb; color: #0c447c; }
+.owner-sub { color: #888780; font-size: 12px; margin-top: 1px; }
+.action-text { color: #1a1a18; line-height: 1.4; }
+.note-badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 11px; background: #faeeda; color: #854f0b; margin-left: 4px; }
+.deadline { font-size: 12px; color: #5f5e5a; }
+.deadline.urgent { color: #a32d2d; font-weight: 600; }
+select.ss { font-size: 12px; padding: 5px 7px; border-radius: 6px; border: 1px solid #d6d4cb; background: #fff; color: #1a1a18; cursor: pointer; width: 130px; }
+select.ss.s-done { background: #eaf3de; color: #27500a; border-color: #97c459; }
+select.ss.s-progress { background: #faeeda; color: #854f0b; border-color: #ef9f27; }
+select.ss.s-blocked { background: #fcebeb; color: #791f1f; border-color: #f09595; }
+select.ss.s-pending { background: #f1efe8; color: #5f5e5a; }
+textarea.ri { font-size: 12px; padding: 5px 7px; border-radius: 6px; border: 1px solid #d6d4cb; background: #fff; color: #1a1a18; resize: none; width: 100%; height: 48px; line-height: 1.4; font-family: inherit; }
+textarea.ri:focus { outline: none; border-color: #85b7eb; }
+.save-btn { padding: 5px 9px; font-size: 11px; border-radius: 6px; border: 1px solid #85b7eb; background: #e6f1fb; color: #185fa5; cursor: pointer; margin-top: 4px; }
+.save-btn:hover { background: #b5d4f4; }
+.saved-remark { font-size: 12px; color: #5f5e5a; font-style: italic; line-height: 1.4; cursor: pointer; }
+.saved-remark:hover { color: #1a1a18; }
+.no-remark { font-size: 12px; color: #888780; cursor: pointer; }
+.no-remark:hover { color: #5f5e5a; }
+.user-bar { display: flex; align-items: center; gap: 10px; background: #f1efe8; border-radius: 8px; padding: 8px 14px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.user-bar label { font-size: 13px; color: #5f5e5a; white-space: nowrap; }
+.user-bar select { font-size: 13px; padding: 5px 8px; border-radius: 6px; border: 1px solid #d6d4cb; background: #fff; color: #1a1a18; }
+.history-panel { background: #fff; border: 1px solid #e5e3da; border-radius: 12px; padding: 16px; margin-top: 1.25rem; }
+.history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.history-header h3 { font-size: 15px; font-weight: 600; color: #1a1a18; }
+.history-filters { display: flex; gap: 6px; }
+.hf-btn { padding: 3px 10px; font-size: 12px; border: 1px solid #d6d4cb; border-radius: 6px; background: #fff; color: #5f5e5a; cursor: pointer; }
+.hf-btn.active { background: #e6f1fb; color: #0c447c; border-color: #85b7eb; }
+.history-entry { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e5e3da; align-items: flex-start; }
+.history-entry:last-child { border-bottom: none; }
+.history-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+.history-body { flex: 1; min-width: 0; }
+.history-who { font-size: 13px; font-weight: 600; color: #1a1a18; }
+.history-action { font-size: 13px; color: #5f5e5a; }
+.history-item { font-size: 12px; color: #888780; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-time { font-size: 11px; color: #888780; white-space: nowrap; flex-shrink: 0; margin-top: 3px; }
+.change-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 1px 7px; border-radius: 10px; }
+.change-status { background: #e6f1fb; color: #185fa5; }
+.change-remark { background: #faeeda; color: #854f0b; }
+.empty-history { text-align: center; padding: 24px; color: #888780; font-size: 13px; }
+.toast-msg { position: fixed; bottom: 20px; right: 20px; background: #fff; border: 1px solid #97c459; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #27500a; display: none; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.note-text { font-size: 12px; color: #5f5e5a; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="tracker">
+  <div class="top-bar">
+    <div>
+      <h2>Console tracker — WARM Prep 2026</h2>
+      <p class="note-text">Select your name before making changes. Data saves in this browser only — see note below.</p>
+    </div>
+    <div class="top-actions">
+      <button class="site-btn active" onclick="filterSite('All')">All sites</button>
+      <button class="site-btn" onclick="filterSite('Mckinley')">Mckinley</button>
+      <button class="site-btn" onclick="filterSite('Pasay')">Pasay</button>
+      <button class="icon-btn" onclick="toggleHistory()" id="hist-toggle-btn">History <span id="hist-count-badge" style="font-size:11px;background:#eeedfe;color:#3c3489;border-radius:10px;padding:1px 6px;display:none"></span></button>
+      <button class="icon-btn" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="user-bar">
+    <label for="user-select">Editing as:</label>
+    <select id="user-select" onchange="setCurrentUser(this.value)">
+      <option value="">— select your name —</option>
+      <option value="Marimar Dollentas">Marimar Dollentas (Mckinley)</option>
+      <option value="Norman Lucero">Norman Lucero (Pasay)</option>
+      <option value="Supervisor">Supervisor</option>
+    </select>
+    <span id="user-indicator" style="margin-left:auto;font-size:12px;color:#888780;">No user selected — changes will be logged as Anonymous.</span>
+  </div>
+
+  <div class="charts-row">
+    <div class="metric-card"><div class="metric-label">Total items</div><div class="metric-value" id="mc-total-val">13</div><div class="metric-sub">across both sites</div></div>
+    <div class="metric-card"><div class="metric-label">Done</div><div class="metric-value" id="mc-done-val" style="color:#27500a">0</div><div class="metric-sub" id="mc-done-sub">0% complete</div></div>
+    <div class="metric-card"><div class="metric-label">In progress</div><div class="metric-value" id="mc-prog-val" style="color:#854f0b">13</div><div class="metric-sub" id="mc-prog-sub">100% of items</div></div>
+    <div class="metric-card"><div class="metric-label">Blocked</div><div class="metric-value" id="mc-blk-val" style="color:#791f1f">0</div><div class="metric-sub">need attention</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem;">
+    <div class="chart-card">
+      <div class="chart-title">Status breakdown</div>
+      <div class="donut-wrap">
+        <canvas id="donut-chart" width="90" height="90"></canvas>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Completion by site</div>
+      <div class="bar-chart-area" id="site-bars"></div>
+    </div>
+  </div>
+
+  <div class="progress-row">
+    <span class="prog-label">Overall progress</span>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <span class="prog-count" id="prog-count">0 / 13 done</span>
+  </div>
+
+  <table>
+    <colgroup>
+      <col style="width:88px"><col style="width:110px"><col><col style="width:82px"><col style="width:140px"><col style="width:170px">
+    </colgroup>
+    <thead>
+      <tr><th>Site</th><th>Owner</th><th>Action item</th><th>Deadline</th><th>Status</th><th>Remarks</th></tr>
+    </thead>
+    <tbody id="tracker-body"></tbody>
+  </table>
+
+  <div id="history-panel-wrap" style="display:none;">
+    <div class="history-panel">
+      <div class="history-header">
+        <h3>Edit history</h3>
+        <div class="history-filters">
+          <button class="hf-btn active" onclick="filterHistory('All',this)">All</button>
+          <button class="hf-btn" onclick="filterHistory('Status',this)">Status changes</button>
+          <button class="hf-btn" onclick="filterHistory('Remark',this)">Remarks</button>
+          <button class="hf-btn" onclick="clearHistory()">Clear</button>
+        </div>
+      </div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-msg" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const DATA = [
+  {id:1,site:"Mckinley",owner:"Marimar Dollentas",action:"WiFi and TPGuest Testing",deadline:"16-Jul-26",note:"Progressive Checking"},
+  {id:2,site:"Mckinley",owner:"Marimar Dollentas",action:"SIA Wallpaper, Screensaver, Lockscreen, Cable Management & Monitor Pairing",deadline:"13-Jul-26",note:""},
+  {id:3,site:"Mckinley",owner:"Marimar Dollentas",action:"JPMC Wallpaper, Screensaver, Lockscreen, Cable Management & Monitor Pairing",deadline:"13-Jul-26",note:""},
+  {id:4,site:"Mckinley",owner:"Marimar Dollentas",action:"TikTok Wallpaper, Screensaver, Lockscreen, Cable Management & Monitor Pairing",deadline:"13-Jul-26",note:""},
+  {id:5,site:"Mckinley",owner:"Marimar Dollentas",action:"Boardroom VC Testing (with & without remote attendees)",deadline:"16-Jul-26",note:"Progressive Checking"},
+  {id:6,site:"Mckinley",owner:"Marimar Dollentas",action:"HR Kiosks (make sure working)",deadline:"13-Jul-26",note:""},
+  {id:7,site:"Pasay",owner:"Norman Lucero",action:"WiFi and TPGuest Testing",deadline:"15-Jul-26",note:"Progressive Checking"},
+  {id:8,site:"Pasay",owner:"Norman Lucero",action:"FedEx Wallpaper, Screensaver, Lockscreen, Cable Management & Monitor Pairing",deadline:"13-Jul-26",note:""},
+  {id:9,site:"Pasay",owner:"Norman Lucero",action:"Expedia Wallpaper, Screensaver, Lockscreen, Cable Management & Monitor Pairing",deadline:"13-Jul-26",note:""},
+  {id:10,site:"Pasay",owner:"Norman Lucero",action:"Truist Wallpaper, Screensaver, Lockscreen, Cable Management & Monitor Pairing",deadline:"13-Jul-26",note:""},
+  {id:11,site:"Pasay",owner:"Norman Lucero",action:"Electrify America Wallpaper, Screensaver, Lockscreen, Cable Management & Monitor Pairing",deadline:"13-Jul-26",note:""},
+  {id:12,site:"Pasay",owner:"Norman Lucero",action:"Boardroom VC Testing (with & without remote attendees)",deadline:"15-Jul-26",note:"Progressive Checking"},
+  {id:13,site:"Pasay",owner:"Norman Lucero",action:"HR Kiosks (make sure working)",deadline:"13-Jul-26",note:""},
+];
+
+const AVATARS = {
+  "Marimar Dollentas": {initials:"MD", bg:"#eeedfe", color:"#3c3489"},
+  "Norman Lucero":     {initials:"NL", bg:"#e6f1fb", color:"#0c447c"},
+  "Supervisor":        {initials:"SV", bg:"#eaf3de", color:"#27500a"},
+  "Anonymous":         {initials:"?",  bg:"#f1efe8", color:"#5f5e5a"},
+};
+
+const STORAGE_KEY = "warm_tracker_state_v1";
+const HISTORY_KEY = "warm_tracker_history_v1";
+
+let state = {};
+let editingId = null;
+let currentFilter = "All";
+let currentUser = "";
+let history = [];
+let historyFilter = "All";
+let donutChart = null;
+
+function loadFromStorage() {
+  try {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      state = JSON.parse(savedState);
+    } else {
+      DATA.forEach(d => { state[d.id] = {status:"In Progress", remark:""}; });
+    }
+  } catch(e) {
+    DATA.forEach(d => { state[d.id] = {status:"In Progress", remark:""}; });
+  }
+  try {
+    const savedHist = localStorage.getItem(HISTORY_KEY);
+    if (savedHist) {
+      history = JSON.parse(savedHist).map(e => ({...e, ts: new Date(e.ts)}));
+    }
+  } catch(e) { history = []; }
+}
+
+function persistState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function persistHistory() {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch(e) {}
+}
+
+function setCurrentUser(val) {
+  currentUser = val;
+  const ind = document.getElementById("user-indicator");
+  if (val) {
+    const av = AVATARS[val] || AVATARS["Anonymous"];
+    ind.innerHTML = `<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5f5e5a"><span style="width:22px;height:22px;border-radius:50%;background:${av.bg};color:${av.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">${av.initials}</span>Editing as <strong style="color:#1a1a18">${val}</strong></span>`;
+  } else {
+    ind.textContent = "No user selected — changes will be logged as Anonymous.";
+  }
+}
+
+function logChange(type, itemId, detail) {
+  const item = DATA.find(d=>d.id===itemId);
+  const who = currentUser || "Anonymous";
+  const entry = { id: Date.now() + Math.random(), type, who, site: item.site, itemId, action: item.action, detail, ts: new Date() };
+  history.unshift(entry);
+  persistHistory();
+  updateHistoryBadge();
+  renderHistory();
+}
+
+function formatTime(d) {
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 5) return "just now";
+  if (diff < 60) return diff + "s ago";
+  if (diff < 3600) return Math.floor(diff/60) + "m ago";
+  if (diff < 86400) return Math.floor(diff/3600) + "h ago";
+  return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}) + " " + d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+}
+
+function updateHistoryBadge() {
+  const badge = document.getElementById("hist-count-badge");
+  if (history.length > 0) { badge.textContent = history.length; badge.style.display = "inline"; }
+  else { badge.style.display = "none"; }
+}
+
+function toggleHistory() {
+  const panel = document.getElementById("history-panel-wrap");
+  const btn = document.getElementById("hist-toggle-btn");
+  const shown = panel.style.display !== "none";
+  panel.style.display = shown ? "none" : "block";
+  btn.classList.toggle("active", !shown);
+  if (!shown) renderHistory();
+}
+
+function filterHistory(type, btn) {
+  historyFilter = type;
+  document.querySelectorAll(".hf-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderHistory();
+}
+
+function clearHistory() {
+  if (!confirm("Clear all edit history?")) return;
+  history = [];
+  persistHistory();
+  updateHistoryBadge();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById("history-list");
+  const filtered = historyFilter === "All" ? history : history.filter(e=>e.type===historyFilter);
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-history">No changes recorded yet.</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(e => {
+    const av = AVATARS[e.who] || AVATARS["Anonymous"];
+    const pill = e.type === "Status"
+      ? `<span class="change-pill change-status">${e.detail}</span>`
+      : `<span class="change-pill change-remark">Remark updated</span>`;
+    const siteCls = e.site==="Mckinley"?"site-mckinley":"site-pasay";
+    return `<div class="history-entry">
+      <div class="history-avatar" style="background:${av.bg};color:${av.color}">${av.initials}</div>
+      <div class="history-body">
+        <div><span class="history-who">${e.who}</span> <span class="history-action">updated</span> <span class="site-tag ${siteCls}" style="font-size:11px;padding:1px 5px">${e.site}</span></div>
+        <div style="margin-top:3px">${pill}</div>
+        <div class="history-item" title="${e.action}">${e.action}</div>
+        ${e.type==="Remark"?`<div style="font-size:12px;color:#888780;margin-top:2px;font-style:italic">"${e.detail}"</div>`:""}
+      </div>
+      <div class="history-time">${formatTime(e.ts)}</div>
+    </div>`;
+  }).join("");
+}
+
+function getStatusClass(s) {
+  if (s==="Done") return "s-done";
+  if (s==="In Progress") return "s-progress";
+  if (s==="Blocked") return "s-blocked";
+  return "s-pending";
+}
+
+function isUrgent(dl) {
+  const mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const p=dl.split("-");
+  return (new Date(parseInt("20"+p[2]),mo[p[1]],parseInt(p[0]))-new Date())/86400000<=3;
+}
+
+function getStats(ids) {
+  const c={"Done":0,"In Progress":0,"Blocked":0,"Not Started":0};
+  ids.forEach(id=>c[state[id].status]++);
+  return c;
+}
+
+function updateMetrics() {
+  const ids=DATA.filter(d=>currentFilter==="All"||d.site===currentFilter).map(d=>d.id);
+  const c=getStats(ids); const total=ids.length; const done=c["Done"];
+  document.getElementById("mc-total-val").textContent=total;
+  document.getElementById("mc-done-val").textContent=done;
+  document.getElementById("mc-done-sub").textContent=Math.round(done/total*100)+"% complete";
+  document.getElementById("mc-prog-val").textContent=c["In Progress"];
+  document.getElementById("mc-prog-sub").textContent=Math.round(c["In Progress"]/total*100)+"% of items";
+  document.getElementById("mc-blk-val").textContent=c["Blocked"];
+  document.getElementById("prog-fill").style.width=Math.round(done/total*100)+"%";
+  document.getElementById("prog-count").textContent=done+" / "+total+" done";
+}
+
+function updateDonut() {
+  const ids=DATA.filter(d=>currentFilter==="All"||d.site===currentFilter).map(d=>d.id);
+  const c=getStats(ids);
+  const labels=["Done","In Progress","Blocked","Not Started"];
+  const values=labels.map(l=>c[l]);
+  const colors=["#27500a","#854f0b","#791f1f","#888780"];
+  document.getElementById("donut-legend").innerHTML=labels.map((l,i)=>`<div class="legend-item"><span class="legend-dot" style="background:${colors[i]}"></span><span>${l}: ${values[i]}</span></div>`).join("");
+  if (donutChart) { donutChart.data.datasets[0].data=values; donutChart.update(); return; }
+  donutChart=new Chart(document.getElementById("donut-chart"),{
+    type:"doughnut",
+    data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:2,borderColor:"#ffffff"}]},
+    options:{responsive:false,cutout:"68%",plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>" "+ctx.label+": "+ctx.raw}}}}
+  });
+}
+
+function updateSiteBars() {
+  const sites=currentFilter==="All"?["Mckinley","Pasay"]:[currentFilter];
+  const colors={Mckinley:"#534ab7",Pasay:"#2a78d6"};
+  document.getElementById("site-bars").innerHTML=sites.map(site=>{
+    const ids=DATA.filter(d=>d.site===site).map(d=>d.id);
+    const done=ids.filter(id=>state[id].status==="Done").length;
+    const pct=Math.round(done/ids.length*100);
+    return `<div class="bar-row"><span class="bar-label">${site}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colors[site]}"></div></div><span class="bar-pct">${pct}%</span></div>
+    <div class="bar-row" style="margin-top:-4px;margin-bottom:4px;"><span class="bar-label" style="font-size:11px;color:#888780">${done}/${ids.length} done</span><div style="flex:1"></div><span></span></div>`;
+  }).join("");
+}
+
+function updateAll() { updateMetrics(); updateDonut(); updateSiteBars(); }
+
+function renderRows(filter) {
+  const tbody=document.getElementById("tracker-body");
+  const rows=DATA.filter(d=>filter==="All"||d.site===filter);
+  tbody.innerHTML=rows.map(d=>{
+    const s=state[d.id];
+    const sc=getStatusClass(s.status);
+    const urg=isUrgent(d.deadline)?" urgent":"";
+    const stc=d.site==="Mckinley"?"site-mckinley":"site-pasay";
+    const remarkHtml=editingId===d.id
+      ?`<textarea class="ri" id="ri-${d.id}">${s.remark}</textarea><button class="save-btn" onclick="saveRemark(${d.id})">Save</button>`
+      :s.remark
+        ?`<span class="saved-remark" onclick="startEdit(${d.id})" title="Click to edit">${s.remark}</span>`
+        :`<span class="no-remark" onclick="startEdit(${d.id})">+ Add remark</span>`;
+    return `<tr>
+      <td><span class="site-tag ${stc}">${d.site}</span></td>
+      <td><span style="font-size:13px;color:#1a1a18">${d.owner.split(" ")[0]}</span><div class="owner-sub">${d.owner.split(" ").slice(1).join(" ")}</div></td>
+      <td><span class="action-text">${d.action}${d.note?`<span class="note-badge">${d.note}</span>`:""}</span></td>
+      <td><span class="deadline${urg}">${d.deadline}</span></td>
+      <td><select class="ss ${sc}" onchange="changeStatus(${d.id},this.value)">
+        <option${s.status==="In Progress"?" selected":""}>In Progress</option>
+        <option${s.status==="Done"?" selected":""}>Done</option>
+        <option${s.status==="Blocked"?" selected":""}>Blocked</option>
+        <option${s.status==="Not Started"?" selected":""}>Not Started</option>
+      </select></td>
+      <td>${remarkHtml}</td>
+    </tr>`;
+  }).join("");
+  if (editingId!==null) {
+    const ta=document.getElementById("ri-"+editingId);
+    if (ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}
+  }
+}
+
+function changeStatus(id, val) {
+  const prev=state[id].status;
+  if (prev===val) return;
+  state[id].status=val;
+  persistState();
+  logChange("Status", id, prev+" → "+val);
+  updateAll();
+  renderRows(currentFilter);
+}
+
+function startEdit(id) { editingId=id; renderRows(currentFilter); }
+
+function saveRemark(id) {
+  const ta=document.getElementById("ri-"+id);
+  if (!ta) return;
+  const newVal=ta.value.trim();
+  const oldVal=state[id].remark;
+  if (newVal!==oldVal) {
+    state[id].remark=newVal;
+    persistState();
+    logChange("Remark", id, newVal||"(cleared)");
+  }
+  editingId=null;
+  renderRows(currentFilter);
+  showToast("Remark saved");
+}
+
+function filterSite(site) {
+  currentFilter=site;
+  document.querySelectorAll(".site-btn").forEach(b=>{
+    b.classList.toggle("active",(site==="All"&&b.textContent.includes("All"))||(b.textContent===site));
+  });
+  updateAll();
+  renderRows(site);
+}
+
+function exportCSV() {
+  const rows=DATA.filter(d=>currentFilter==="All"||d.site===currentFilter);
+  const headers=["Site","Owner","Action Item","Deadline","Note","Status","Remarks"];
+  const lines=[headers.join(",")].concat(rows.map(d=>{
+    const s=state[d.id];
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    return [d.site,d.owner,d.action,d.deadline,d.note,s.status,s.remark].map(esc).join(",");
+  }));
+  const hLines=["Edited By","Site","Action Item","Type","Detail","Timestamp"];
+  const hData=history.map(e=>{
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    return [e.who,e.site,e.action,e.type,e.detail,e.ts.toISOString()].map(esc).join(",");
+  });
+  const full=lines.join("\n")+"\n\n--- EDIT HISTORY ---\n"+[hLines.join(","),...hData].join("\n");
+  const blob=new Blob([full],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="console_tracker.csv";
+  a.click();
+  showToast("CSV downloaded (includes history)");
+}
+
+function showToast(msg) {
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.style.display="block";
+  setTimeout(()=>{t.style.display="none";},1800);
+}
+
+loadFromStorage();
+updateAll();
+renderRows("All");
+updateHistoryBadge();
+</script>
+</body>
+</html>
